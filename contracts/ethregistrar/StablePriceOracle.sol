@@ -15,7 +15,8 @@ contract StablePriceOracle is Ownable, PriceOracle {
     using SafeMath for *;
     using StringUtils for *;
 
-    // Rent in base price units by length. Element 0 is for 1-length names, and so on.
+    //索引2，3，4分别存储域名3,4,5位及以上的每秒的usd费用
+    //现在是3位每年640美金，4位每年160美金，5位及以上每年5美金
     uint[] public rentPrices;
 
     // Oracle address
@@ -40,10 +41,10 @@ contract StablePriceOracle is Ownable, PriceOracle {
         }
         require(len > 0);
         
-        uint basePrice = rentPrices[len - 1].mul(duration);
-        basePrice = basePrice.add(_premium(name, expires, duration));
+        uint basePrice = rentPrices[len - 1].mul(duration);//每秒费用*有效时间
+        basePrice = basePrice.add(_premium(name, expires, duration));//这里_premium固定是0
 
-        return attoUSDToWei(basePrice);
+        return attoUSDToWei(basePrice);//根据预言机转成wei价格，用的是MakerDAO的medianizer预言机
     }
 
     /**

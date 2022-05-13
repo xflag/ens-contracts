@@ -4,12 +4,12 @@ import "../ResolverBase.sol";
 abstract contract AddrResolver is ResolverBase {
     bytes4 constant private ADDR_INTERFACE_ID = 0x3b3b57de;
     bytes4 constant private ADDRESS_INTERFACE_ID = 0xf1cb7e06;
-    uint constant private COIN_TYPE_ETH = 60;
+    uint constant private COIN_TYPE_ETH = 60;//eth地址默认60，还可以解析btc,ltc,dego地址，分别对应0，2，3    
 
     event AddrChanged(bytes32 indexed node, address a);
     event AddressChanged(bytes32 indexed node, uint coinType, bytes newAddress);
 
-    mapping(bytes32=>mapping(uint=>bytes)) _addresses;
+    mapping(bytes32=>mapping(uint=>bytes)) _addresses;//此map存储node=>60=>address，就表示某个eth域名对应的地址
 
     /**
      * Sets the address associated with an ENS node.

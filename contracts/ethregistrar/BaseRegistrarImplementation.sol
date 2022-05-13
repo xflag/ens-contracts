@@ -42,12 +42,12 @@ contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
     }
 
     modifier live {
-        require(ens.owner(baseNode) == address(this));
+        require(ens.owner(baseNode) == address(this));//基结点的所有者必须是本合约
         _;
     }
 
     modifier onlyController {
-        require(controllers[msg.sender]);
+        require(controllers[msg.sender]);//调用方地址必须是可控制这个合约的地址，这个地址需要本合约owner事先用addController添加进来
         _;
     }
 
@@ -87,7 +87,7 @@ contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
     // Returns true iff the specified name is available for registration.
     function available(uint256 id) public view override returns(bool) {
         // Not available if it's registered here or in its grace period.
-        return expiries[id] + GRACE_PERIOD < block.timestamp;
+        return expiries[id] + GRACE_PERIOD < block.timestamp;//过期时间戳+90天的保护期<当前时间戳，就表示过期且过了保护期了，可以注册
     }
 
     /**
@@ -112,15 +112,15 @@ contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
 
     function _register(uint256 id, address owner, uint duration, bool updateRegistry) internal live onlyController returns(uint) {
         require(available(id));
-        require(block.timestamp + duration + GRACE_PERIOD > block.timestamp + GRACE_PERIOD); // Prevent future overflow
+        require(block.timestamp + duration + GRACE_PERIOD > block.timestamp + GRACE_PERIOD); //先计算一下当前时间戳+有效时间+保护期，如果溢出就会直接fail，防止这次注册成功后，后面都不可renew了
 
         expiries[id] = block.timestamp + duration;
         if(_exists(id)) {
-            // Name was previously owned, and expired
+            //之前存在这个id的nft，则燃烧，说明这个nft是过期又注册的
             _burn(id);
         }
         _mint(owner, id);
-        if(updateRegistry) {
+        if(updateRegistry) {//更新ens的owner
             ens.setSubnodeOwner(baseNode, bytes32(id), owner);
         }
 
@@ -139,7 +139,7 @@ contract BaseRegistrarImplementation is ERC721, BaseRegistrar  {
     }
 
     /**
-     * @dev Reclaim ownership of a name in ENS, if you own it in the registrar.
+     * @dev 重新认领ens
      */
     function reclaim(uint256 id, address owner) external override live {
         require(_isApprovedOrOwner(msg.sender, id));

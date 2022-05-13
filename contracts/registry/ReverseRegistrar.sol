@@ -47,21 +47,21 @@ contract ReverseRegistrar {
      * @return The ENS node hash of the reverse record.
      */
     function claimWithResolver(address owner, address resolver) public returns (bytes32) {
-        bytes32 label = sha3HexAddress(msg.sender);
+        bytes32 label = sha3HexAddress(msg.sender);//将钱包地址转成字符串再做keccak256
         bytes32 node = keccak256(abi.encodePacked(ADDR_REVERSE_NODE, label));
         address currentOwner = ens.owner(node);
 
-        // Update the resolver if required
+        //需要更新解析器地址
         if (resolver != address(0x0) && resolver != ens.resolver(node)) {
             // Transfer the name to us first if it's not already
-            if (currentOwner != address(this)) {
-                ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, address(this));
+            if (currentOwner != address(this)) {//之前的owner不是当前合约地址
+                ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, address(this));//设置node的owner为当前合约地址
                 currentOwner = address(this);
             }
-            ens.setResolver(node, resolver);
+            ens.setResolver(node, resolver);//设置解析器地址
         }
 
-        // Update the owner if required
+        //如果用了不同的ReverseRegistar时，就会出现之前的owner和不是当前合约地址，需要更新
         if (currentOwner != owner) {
             ens.setSubnodeOwner(ADDR_REVERSE_NODE, label, owner);
         }
@@ -78,7 +78,7 @@ contract ReverseRegistrar {
      */
     function setName(string memory name) public returns (bytes32) {
         bytes32 node = claimWithResolver(address(this), address(defaultResolver));
-        defaultResolver.setName(node, name);
+        defaultResolver.setName(node, name);//设置node对应的ens 
         return node;
     }
 

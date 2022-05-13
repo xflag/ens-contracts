@@ -7,9 +7,10 @@ import "./ENS.sol";
  */
 contract ENSRegistry is ENS {
 
+    //解析器结构体
     struct Record {
-        address owner;
-        address resolver;
+        address owner;//注册者
+        address resolver;//解析器合约地址
         uint64 ttl;
     }
 
@@ -85,7 +86,7 @@ contract ENSRegistry is ENS {
      */
     function setResolver(bytes32 node, address resolver) public virtual override authorised(node) {
         emit NewResolver(node, resolver);
-        records[node].resolver = resolver;
+        records[node].resolver = resolver;//设置node的解析器地址，这里的node就是上面讲到的nodehash生成的node
     }
 
     /**
